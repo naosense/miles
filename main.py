@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from datetime import datetime
 
@@ -5,8 +6,10 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tick
 
+RUNNER = "NAOSENSE"
 
-def y_fmt(val: float, pos) -> str:
+
+def number_label_fmt(val: float, pos) -> str:
     if val > 1000000:
         return f"{val / 1000000:.0f}M"
     elif val > 1000:
@@ -23,7 +26,7 @@ def plot_running() -> None:
         formatter = mdates.ConciseDateFormatter(locator)
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(formatter)
-        ax.yaxis.set_major_formatter(tick.FuncFormatter(y_fmt))
+        ax.yaxis.set_major_formatter(tick.FuncFormatter(number_label_fmt))
         ax.tick_params(axis="x", which="major", length=5)
         ax.tick_params(axis="x", which="minor", length=5)
         ax.tick_params(axis="y", which="major", length=5)
@@ -41,7 +44,7 @@ def plot_running() -> None:
         fig.text(
             0.95,
             0.15,
-            f"{years} years\n{len(xs)} times\ntotal {ys[-1]:.2f}Km\nlatest {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
+            f"{RUNNER}\n{years} years\n{len(xs)} times\ntotal {ys[-1]:.2f}Km\nlatest {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
             ha="right",
             va="bottom",
             fontsize="small",
@@ -89,16 +92,6 @@ def sync_data(dt_str: str, distance: float) -> bool:
         with open("running.csv", "a") as f:
             f.write(dt_str + "," + str(distance) + "\n")
     return True
-
-
-def parse_garmin_export_data() -> None:
-    with open("Activities.csv") as source:
-        with open("running.csv", "a") as target:
-            for line in reversed(list(source)):
-                cols = line.rstrip().split(",")
-                if cols[0] == "活动类型":
-                    continue
-                target.write(cols[1] + "," + cols[4][1:-1] + "\n")
 
 
 if __name__ == "__main__":
