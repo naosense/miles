@@ -36,7 +36,18 @@ def plot_running() -> None:
             color="#CC5135",
             label=f"latest running: {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
         )
-        ax.legend(loc="lower right")
+
+        years = xs[-1].year - xs[0].year + 1
+        fig.text(
+            0.95,
+            0.15,
+            f"{years} years\n{len(xs)} times\ntotal {ys[-1]:.2f}Km\nlatest {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
+            ha="right",
+            va="bottom",
+            fontsize="small",
+            linespacing=1.5,
+        )
+        # ax.legend(loc="lower right")
         ax.set_ylabel("Distance (Km)")
         fig.tight_layout()
         fig.savefig("miles.svg")
@@ -65,18 +76,19 @@ def get_running_data() -> tuple[list[datetime], list[float], list[float]]:
     return xs, ys, ds
 
 
-def sync_data(dt_str: str, distance: float) -> None:
+def sync_data(dt_str: str, distance: float) -> bool:
     dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
     xs, _, _ = get_running_data()
     if xs:
         latest = xs[-1]
         if latest >= dt:
-            return
+            return False
         with open("running.csv", "a") as f:
             f.write(dt_str + "," + str(distance) + "\n")
     else:
         with open("running.csv", "a") as f:
             f.write(dt_str + "," + str(distance) + "\n")
+    return True
 
 
 def parse_garmin_export_data() -> None:
@@ -91,8 +103,17 @@ def parse_garmin_export_data() -> None:
 
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) == 3:
-        sync_data(args[1], float(args[2]))
+    if len(args) < 2:
+        sys.exit("args is not right, e.g. python main.py http 2022-01-02 12:00:21")
+    op = args[1]
+    if op != "http" and op != "push":
+        sys.exit("op must be http or push")
+    if op == "http":
+        if sync_data(args[2], float(args[3])):
+            plot_running()
+        else:
+            print("data is outdated")
+    elif op == "push":
         plot_running()
     else:
-        print("args is not right, e.g. python main.py 2022-01-02 12:00:21")
+        sys.exit("args is not right, e.g. python main.py http 2022-01-02 12:00:21")

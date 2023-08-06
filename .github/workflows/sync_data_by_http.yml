@@ -1,4 +1,4 @@
-name: Sync running data
+name: Sync running data by http request
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
         description: 'datetime, format 2021-01-02 12:22:45'
         required: false
       distance:
-        description: 'running distance, 5.12'
+        description: 'running distance, e.g. 5.12'
         required: false
 
 env:
@@ -31,13 +31,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install matplotlib
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Generate new SVG file
+      - name: Update running data and generate new SVG file
         run: |
-          python main.py $'${{ github.event.inputs.dt }}' $'${{ github.event.inputs.distance }}'
-
-      - name: Commit and push new files
+          python main.py http $'${{ github.event.inputs.dt }}' $'${{ github.event.inputs.distance }}'
+      - name: Commit and push updated files
         run: |
           git config --local user.email "${{ env.GITHUB_EMAIL }}"
           git config --local user.name "${{ env.GITHUB_NAME }}"
-          git commit -a -m 'sync running data' || echo "nothing to commit"
+          git commit -a -m 'sync running data by http' || echo "nothing to commit"
           git push || echo "nothing to push"
