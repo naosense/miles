@@ -28,14 +28,16 @@ jobs:
           python-version: 3.11.4
       - name: Install dependencies
         run: |
+          sudo apt install python3-xkcd fonts-humor-sans
           python -m pip install --upgrade pip
           pip install matplotlib
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: New SVG file
+          rm ~/.matplotlib/fontList.cache ~/.cache/matplotlib/fontList.json
+      - name: Generate new SVG file
         run: |
           python main.py $'${{ github.event.inputs.dt }}' $'${{ github.event.inputs.distance }}'
 
-      - name: Push
+      - name: Commit and push new files
         run: |
           git config --local user.email "${{ env.GITHUB_EMAIL }}"
           git config --local user.name "${{ env.GITHUB_NAME }}"
