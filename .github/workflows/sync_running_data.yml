@@ -1,0 +1,43 @@
+name: Sync running data
+
+on:
+  workflow_dispatch:
+    inputs:
+      dt:
+        description: 'datetime, format 2021-01-02 12:22:45'
+        required: false
+      distance:
+        description: 'running distance, 5.12'
+        required: false
+
+env:
+  # change env here
+  GITHUB_NAME: naosense
+  GITHUB_EMAIL: pingao777@gmail.com
+
+jobs:
+  sync:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.4
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: New SVG file
+        run: |
+          python main.py $'${{ github.event.inputs.dt }}' $'${{ github.event.inputs.distance }}'
+
+      - name: Push
+        run: |
+          git config --local user.email "${{ env.GITHUB_EMAIL }}"
+          git config --local user.name "${{ env.GITHUB_NAME }}"
+          git commit -a -m 'sync running data' || echo "nothing to commit"
+          git push || echo "nothing to push"
