@@ -10,7 +10,7 @@ As the film *Forrest Gump* said
 
 As an English proverb said, "many a little makes a mickle ", we Chinese say "不积跬步，无以至千里", it means if you don't accumulate steps, you can't go a thousand miles.
 
-As a runner, If you run one kilometer a day, it looks inconspicuous, but if you stick to it for one year, you can run 365 kilometers, and if you stick to ten years, it will be 3650 kilometers…, not to mention that you will run faster and faster, more and more. So I wrote this software to motivate myself, it's a odometer for runners.
+As a runner, If you run one kilometer a day, it looks inconspicuous, but if you stick to it for one year, you can run 365 kilometers, and if you stick to ten years, it will be 3650 kilometers…, not to mention that you will run faster and faster, more and more. So I wrote this software to motivate myself, it's the distance history for a runner.
 
 ## Usage
 
