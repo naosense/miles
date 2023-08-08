@@ -5,6 +5,7 @@ from datetime import datetime
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tick
+from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 RUNNER = "NAOSENSE"
 
@@ -31,7 +32,7 @@ def plot_running() -> None:
         ax.tick_params(axis="x", which="minor", length=5)
         ax.tick_params(axis="y", which="major", length=5)
         ax.tick_params(axis="y", which="minor", length=5)
-        ax.set_title("Running is not a sport for health, it is a way of life")
+        ax.set_title("Running is not a sport for health, it is a way of life!")
         xs, ys, ds = get_running_data()
         ax.plot(
             xs,
@@ -49,6 +50,15 @@ def plot_running() -> None:
             va="bottom",
             fontsize="small",
             linespacing=1.5,
+        )
+        img = plt.imread("runner.png")
+        ax.add_artist(
+            AnnotationBbox(
+                OffsetImage(img, zoom=0.03),
+                (1.0, 0.00),
+                xycoords="axes fraction",
+                frameon=False,
+            )
         )
         # ax.legend(loc="lower right")
         ax.set_ylabel("Distance (Km)")
