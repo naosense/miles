@@ -42,10 +42,19 @@ def plot_running() -> None:
         )
 
         years = xs[-1].year - xs[0].year + 1
+        this_year = datetime.now().year
+        distance_this_year = sum(
+            [ds[i] for i, dt in enumerate(xs) if dt.year == this_year]
+        )
         fig.text(
             0.95,
             0.20,
-            f"{RUNNER}\n{years} years\n{len(xs)} times\ntotal {ys[-1]:.2f}Km\nlatest {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
+            f"{RUNNER}\n"
+            f"{years} years\n"
+            f"{len(xs)} times\n"
+            f"total {ys[-1]:.2f}Km\n"
+            f"this year {distance_this_year:.2f}Km\n"
+            f"latest {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
             ha="right",
             va="bottom",
             fontsize="small",
