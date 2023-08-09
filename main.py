@@ -44,7 +44,7 @@ def plot_running() -> None:
         years = xs[-1].year - xs[0].year + 1
         fig.text(
             0.95,
-            0.15,
+            0.20,
             f"{RUNNER}\n{years} years\n{len(xs)} times\ntotal {ys[-1]:.2f}Km\nlatest {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
             ha="right",
             va="bottom",
@@ -55,7 +55,7 @@ def plot_running() -> None:
         ax.add_artist(
             AnnotationBbox(
                 OffsetImage(img, zoom=0.03),
-                (1.0, 0.00),
+                (0.95, 0.05),
                 xycoords="axes fraction",
                 frameon=False,
             )
