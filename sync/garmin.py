@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 
 import cloudscraper
 import httpx
-import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 GITHUB_WORKFLOW_ID = ""
@@ -64,7 +63,7 @@ GARMIN_CN_URL_DICT = {
 
 def notice_github(dt: str, distance: float) -> bool:
     logger.debug(f"send notice github {dt} {distance}")
-    r = requests.post(
+    r = httpx.post(
         GITHUB_WORKFLOW_URL,
         json={
             "inputs": {"dt": f"{dt}", "distance": f"{distance / 1000:.2f}"},
@@ -193,13 +192,16 @@ class Garmin:
                 self.login()
                 await self.fetch_data(url, retrying=True)
 
-    async def get_activities(self, start, limit):
+    async def get_activities(self, start, limit, start_date=None):
         """
         Fetch available activities
         """
+        logger.debug(f"get activities by {start} {limit} {start_date}")
         if not self.is_login:
             self.login()
         url = f"{self.modern_url}/proxy/activitylist-service/activities/search/activities?start={start}&limit={limit}"
+        if start_date:
+            url = url + f"&startDate={start_date}"
         if self.is_only_running:
             url = url + "&activityType=running"
         return await self.fetch_data(url)
@@ -259,20 +261,23 @@ if __name__ == "__main__":
     client = Garmin(email, password, auth_domain, is_only_running)
     client.login()
     loop = asyncio.get_event_loop()
-    runs = loop.run_until_complete(client.get_activities(0, 1))
+    yesterday = datetime.today().date() - timedelta(days=1)
+    runs = loop.run_until_complete(
+        client.get_activities(0, 100, start_date=f"{yesterday:%Y-%m-%d}")
+    )
     if runs:
-        latest_run = runs[0]
-        dt_str = latest_run["startTimeLocal"]
-        distance = latest_run["distance"]
-        dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-        yesterday = datetime.today().date() - timedelta(days=1)
-        if dt.date() < yesterday:
-            logger.warning(f"{dt_str} is outdated")
-        else:
-            if notice_github(dt_str, distance):
-                logger.info("notice github success")
+        for run in runs:
+            dt_str = run["startTimeLocal"]
+            distance = run["distance"]
+            logger.info(f"running {dt_str} {distance}")
+            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+            if dt.date() < yesterday:
+                logger.warning(f"{dt_str} is outdated")
             else:
-                logger.error("notice github fail")
+                if notice_github(dt_str, distance):
+                    logger.info("notice github success")
+                else:
+                    logger.error("notice github fail")
 
     else:
         logger.info("no data")
