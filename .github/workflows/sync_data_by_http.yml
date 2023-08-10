@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       dt:
-        description: 'datetime, format 2021-01-02 12:22:45'
+        description: 'datetime str with comma separated, format 2021-01-02 12:22:45,2021-01-02 12:32:45'
         required: false
       distance:
-        description: 'running distance, e.g. 5.12'
+        description: 'running distance with comma separated, e.g. 5.12,3.23'
         required: false
 
 env:
@@ -21,7 +21,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
         with:

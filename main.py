@@ -98,18 +98,31 @@ def get_running_data() -> tuple[list[datetime], list[float], list[float]]:
     return xs, ys, ds
 
 
-def sync_data(dt_str: str, distance: float) -> bool:
-    dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+def sync_data(dt_str: str, distance_str: str) -> bool:
+    dts = dt_str.split(",")
+    distances = distance_str.split(",")
+    if len(dts) != len(distances):
+        print("dt len not equal distance len")
+        return False
     xs, _, _ = get_running_data()
     if xs:
         latest = xs[-1]
-        if latest >= dt:
+        new_data = [
+            (dt, distances[i])
+            for i, dt in enumerate(dts)
+            if datetime.strptime(dt, "%Y-%m-%d %H:%M:%S") > latest
+        ]
+        if new_data:
+            for dt, distance in sorted(new_data, key=lambda t: t[0]):
+                with open("running.csv", "a") as f:
+                    f.write(dt + "," + distance + "\n")
+        else:
+            print("no new data")
             return False
-        with open("running.csv", "a") as f:
-            f.write(dt_str + "," + str(distance) + "\n")
     else:
-        with open("running.csv", "a") as f:
-            f.write(dt_str + "," + str(distance) + "\n")
+        for i, dt in enumerate(dts):
+            with open("running.csv", "a") as f:
+                f.write(dt + "," + distances[i] + "\n")
     return True
 
 
@@ -121,10 +134,8 @@ if __name__ == "__main__":
     if op != "http" and op != "push":
         sys.exit("op must be http or push")
     if op == "http":
-        if sync_data(args[2], float(args[3])):
+        if sync_data(args[2], args[3]):
             plot_running()
-        else:
-            print("data is outdated")
     elif op == "push":
         plot_running()
     else:
