@@ -113,15 +113,15 @@ def sync_data(dt_str: str, distance_str: str) -> bool:
             if datetime.strptime(dt, "%Y-%m-%d %H:%M:%S") > latest
         ]
         if new_data:
-            for dt, distance in sorted(new_data, key=lambda t: t[0]):
-                with open("running.csv", "a") as f:
+            with open("running.csv", "a") as f:
+                for dt, distance in sorted(new_data, key=lambda t: t[0]):
                     f.write(dt + "," + distance + "\n")
         else:
             print("no new data")
             return False
     else:
-        for i, dt in enumerate(dts):
-            with open("running.csv", "a") as f:
+        with open("running.csv", "a") as f:
+            for i, dt in enumerate(dts):
                 f.write(dt + "," + distances[i] + "\n")
     return True
 
