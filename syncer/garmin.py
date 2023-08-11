@@ -1,6 +1,7 @@
 """
 Python 3 API wrapper for Garmin Connect to get your statistics.
 Copy most code from https://github.com/cyberjunky/python-garminconnect
+Copy most code from https://github.com/yihong0618/running_page
 """
 
 import argparse
@@ -29,7 +30,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)-7s - %(filename)s:%(lineno)4d - %(message)s",
     handlers=[
-        logging.FileHandler(os.path.join(BASE_PATH, "sync.log")),
+        logging.FileHandler(os.path.join(BASE_PATH, "syncer.log")),
         logging.StreamHandler(),  # console
     ],
 )
@@ -61,12 +62,12 @@ GARMIN_CN_URL_DICT = {
 }
 
 
-def notice_github(dt: str, distance: float) -> bool:
-    logger.debug(f"send notice github {dt} {distance}")
+def notice_github(dts: str, distances: str) -> bool:
+    logger.debug(f"send notice github {dts} {distances}")
     r = httpx.post(
         GITHUB_WORKFLOW_URL,
         json={
-            "inputs": {"dt": f"{dt}", "distance": f"{distance / 1000:.2f}"},
+            "inputs": {"dt": f"{dts}", "distance": f"{distances}"},
             "ref": "master",
         },
         headers={"Authorization": ("token %s" % GITHUB_TOKEN)},
@@ -261,23 +262,44 @@ if __name__ == "__main__":
     client = Garmin(email, password, auth_domain, is_only_running)
     client.login()
     loop = asyncio.get_event_loop()
-    yesterday = datetime.today().date() - timedelta(days=1)
+    if not os.path.exists("latest"):
+        logger.error("no latest file")
+        sys.exit(-1)
+    with open("latest", "r") as f:
+        latest_dt = datetime.strptime(f.readline(), "%Y-%m-%d %H:%M:%S")
+    start_date = latest_dt.date() + timedelta(days=1)
     runs = loop.run_until_complete(
-        client.get_activities(0, 100, start_date=f"{yesterday:%Y-%m-%d}")
+        client.get_activities(0, 20, start_date=f"{start_date:%Y-%m-%d}")
     )
     if runs:
-        for run in runs:
-            dt_str = run["startTimeLocal"]
-            distance = run["distance"]
-            logger.info(f"running {dt_str} {distance}")
-            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-            if dt.date() < yesterday:
-                logger.warning(f"{dt_str} is outdated")
+        new_data = [
+            (
+                dt_str,
+                dt,
+                distance,
+            )
+            for run in runs
+            if (
+                dt := datetime.strptime(
+                    dt_str := run["startTimeLocal"], "%Y-%m-%d %H:%M:%S"
+                )
+            )
+            > latest_dt
+            and (distance := run["distance"]) > 0
+        ]
+        new_data.sort(key=lambda t: t[1])
+        if new_data:
+            dts = [dt_str for dt_str, _, _ in new_data]
+            distances = [f"{distance / 1000:.2f}" for _, _, distance in new_data]
+            logger.info(f"got new data {dts} {distances}")
+            if notice_github(",".join(dts), ",".join(distances)):
+                logger.info("notice github success")
+                with open("latest", "w") as f:
+                    f.write(dts[-1])
             else:
-                if notice_github(dt_str, distance):
-                    logger.info("notice github success")
-                else:
-                    logger.error("notice github fail")
+                logger.error("notice github fail")
+        else:
+            logger.info("no new data")
 
     else:
         logger.info("no data")
