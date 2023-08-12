@@ -16,9 +16,9 @@ import cloudscraper
 import httpx
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-GITHUB_WORKFLOW_ID = "65380959"
+GITHUB_WORKFLOW_ID = ""
 
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = ""
 
 GITHUB_WORKFLOW_URL = (
     "https://api.github.com/repos/naosense/miles/actions/workflows/%s/dispatches"
