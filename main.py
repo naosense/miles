@@ -151,15 +151,15 @@ def sync_data(dt_str: str, distance_str: str, heart_str: str, pace_str: str) -> 
         ]
         if new_data:
             with open("running.csv", "a") as f:
-                for dt, distance, heart, pace in sorted(new_data, key=lambda t: t[0]):
-                    f.write(f"{dt},{distance},{heart},{paces}\n")
+                for dt_str, distance, heart, pace in sorted(new_data, key=lambda t: t[0]):
+                    f.write(f"{dt_str},{distance},{heart},{pace}\n")
         else:
             print("no new data")
             return False
     else:
         with open("running.csv", "a") as f:
-            for i, dt in enumerate(dt_strs):
-                f.write(f"{dt},{distances[i]},{hearts[i]},{paces[i]}\n")
+            for i, dt_str in enumerate(dt_strs):
+                f.write(f"{dt_str},{distances[i]},{hearts[i]},{paces[i]}\n")
     return True
 
 
