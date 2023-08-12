@@ -127,11 +127,11 @@ def get_running_data() -> (
 
 
 def sync_data(dt_str: str, distance_str: str, heart_str: str, pace_str: str) -> bool:
-    dts = dt_str.split(",")
+    dt_strs = dt_str.split(",")
     distances = distance_str.split(",")
     hearts = heart_str.split(",")
     paces = pace_str.split(",")
-    n = len(dts)
+    n = len(dt_strs)
     if len(distances) != n:
         print("distance length not equal dt length")
         return False
@@ -145,9 +145,9 @@ def sync_data(dt_str: str, distance_str: str, heart_str: str, pace_str: str) -> 
     if dts:
         latest = dts[-1]
         new_data = [
-            (dt, distances[i], hearts[i], paces[i])
-            for i, dt in enumerate(dts)
-            if datetime.strptime(dt, "%Y-%m-%d %H:%M:%S") > latest
+            (dt_str, distances[i], hearts[i], paces[i])
+            for i, dt_str in enumerate(dt_strs)
+            if datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S") > latest
         ]
         if new_data:
             with open("running.csv", "a") as f:
@@ -158,7 +158,7 @@ def sync_data(dt_str: str, distance_str: str, heart_str: str, pace_str: str) -> 
             return False
     else:
         with open("running.csv", "a") as f:
-            for i, dt in enumerate(dts):
+            for i, dt in enumerate(dt_strs):
                 f.write(f"{dt},{distances[i]},{hearts[i]},{paces[i]}\n")
     return True
 

@@ -16,9 +16,9 @@ import cloudscraper
 import httpx
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-GITHUB_WORKFLOW_ID = ""
+GITHUB_WORKFLOW_ID = "65380959"
 
-GITHUB_TOKEN = ""
+GITHUB_TOKEN = "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"
 
 GITHUB_WORKFLOW_URL = (
     "https://api.github.com/repos/naosense/miles/actions/workflows/%s/dispatches"
@@ -62,12 +62,17 @@ GARMIN_CN_URL_DICT = {
 }
 
 
-def notice_github(dts: str, distances: str) -> bool:
-    logger.debug(f"send notice github {dts} {distances}")
+def notice_github(dts: str, distances: str, hearts: str, paces: str) -> bool:
+    logger.debug(f"send notice github {dts} {distances} {hearts} {paces}")
     r = httpx.post(
         GITHUB_WORKFLOW_URL,
         json={
-            "inputs": {"dt": f"{dts}", "distance": f"{distances}"},
+            "inputs": {
+                "dt": dts,
+                "distance": distances,
+                "heart": hearts,
+                "pace": paces,
+            },
             "ref": "master",
         },
         headers={"Authorization": ("token %s" % GITHUB_TOKEN)},
@@ -277,6 +282,8 @@ if __name__ == "__main__":
                 dt_str,
                 dt,
                 distance,
+                heart,
+                f"{(pace := duration / (distance / 1000)) // 60:.0f}:{pace % 60:.0f}",
             )
             for run in runs
             if (
@@ -286,13 +293,19 @@ if __name__ == "__main__":
             )
             > latest_dt
             and (distance := run["distance"]) > 0
+            and (heart := run["averageHR"])
+            and (duration := run["duration"])
         ]
         new_data.sort(key=lambda t: t[1])
         if new_data:
-            dts = [dt_str for dt_str, _, _ in new_data]
-            distances = [f"{distance / 1000:.2f}" for _, _, distance in new_data]
-            logger.info(f"got new data {dts} {distances}")
-            if notice_github(",".join(dts), ",".join(distances)):
+            dts = [dt_str for dt_str, _, _, _, _ in new_data]
+            distances = [f"{distance / 1000:.2f}" for _, _, distance, _, _ in new_data]
+            hearts = [f"{heart:.0f}" for _, _, _, heart, _ in new_data]
+            paces = [str(pace) for _, _, _, _, pace in new_data]
+            logger.info(f"got new data {dts} {distances} {hearts} {paces}")
+            if notice_github(
+                ",".join(dts), ",".join(distances), ",".join(hearts), ",".join(paces)
+            ):
                 logger.info("notice github success")
                 with open("latest", "w") as f:
                     f.write(dts[-1])
