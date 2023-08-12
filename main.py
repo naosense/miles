@@ -21,25 +21,46 @@ def number_label_fmt(val: float, pos) -> str:
 
 def plot_running() -> None:
     with plt.xkcd():
-        fig, ax = plt.subplots(figsize=(8, 5))
+        fig, ax = plt.subplots(figsize=(8, 5), constrained_layout=True)
         ax.spines[["top", "right"]].set_visible(False)
         locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
         formatter = mdates.ConciseDateFormatter(locator)
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(formatter)
         ax.yaxis.set_major_formatter(tick.FuncFormatter(number_label_fmt))
-        ax.tick_params(axis="x", which="major", length=5)
-        ax.tick_params(axis="x", which="minor", length=5)
-        ax.tick_params(axis="y", which="major", length=5)
-        ax.tick_params(axis="y", which="minor", length=5)
+        ax.tick_params(axis="both", which="major", labelsize="small", length=5)
+        ax.tick_params(axis="both", which="minor", labelsize="small", length=5)
         ax.set_title("Running is not a sport for health, it is a way of life!")
-        xs, ys, ds = get_running_data()
-        ax.plot(
-            xs,
-            ys,
-            color="#CC5135",
-            label=f"latest running: {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
+
+        xs, ys, ds, hs, ps = get_running_data()
+        ax.plot(xs, ys, color="#CC5135")
+        ax2 = plt.axes([0.1, 0.75, 0.3, 0.1])
+        ax2.boxplot(
+            hs,
+            labels=["H"],
+            vert=False,
+            showfliers=False,
+            meanline=True,
+            showmeans=True,
+            widths=0.25,
         )
+        ax2.spines[["top", "right", "left", "bottom"]].set_visible(False)
+        ax2.tick_params(axis="x", which="major", labelsize="xx-small", length=2)
+        ax2.tick_params(axis="y", which="major", labelsize="xx-small", length=0)
+
+        ax3 = plt.axes([0.1, 0.6, 0.3, 0.1])
+        ax3.boxplot(
+            [p.minute * 60 + p.second for p in ps],
+            labels=["P"],
+            vert=False,
+            showfliers=False,
+            meanline=True,
+            showmeans=True,
+            widths=0.25,
+        )
+        ax3.spines[["top", "right", "left", "bottom"]].set_visible(False)
+        ax3.tick_params(axis="x", which="major", labelsize="xx-small", length=2)
+        ax3.tick_params(axis="y", which="major", labelsize="xx-small", length=0)
 
         years = xs[-1].year - xs[0].year + 1
         this_year = datetime.now().year
@@ -47,8 +68,8 @@ def plot_running() -> None:
             [ds[i] for i, dt in enumerate(xs) if dt.year == this_year]
         )
         fig.text(
-            0.95,
-            0.20,
+            0.97,
+            0.15,
             f"{RUNNER}\n"
             f"{years} years\n"
             f"{len(xs)} times\n"
@@ -69,13 +90,12 @@ def plot_running() -> None:
                 frameon=False,
             )
         )
-        # ax.legend(loc="lower right")
-        ax.set_ylabel("Distance (Km)")
-        fig.tight_layout()
         fig.savefig("miles.svg")
 
 
-def get_running_data() -> tuple[list[datetime], list[float], list[float]]:
+def get_running_data() -> (
+    tuple[list[datetime], list[float], list[float], list[int], list[datetime]]
+):
     data = []
     with open("running.csv") as file:
         for line in file:
@@ -84,57 +104,76 @@ def get_running_data() -> tuple[list[datetime], list[float], list[float]]:
                 continue
             dt = datetime.strptime(cols[0], "%Y-%m-%d %H:%M:%S")
             distance = float(cols[1])
-            data.append((dt, distance))
+            heart = int(cols[2])
+            pace = datetime.strptime(cols[3], "%M:%S")
+            if distance <= 0.0:
+                continue
+            data.append((dt, distance, heart, pace))
     data.sort(key=lambda t: t[0])
     acc = 0.0
-    xs = []
-    ys = []
+    dts = []
+    accs = []
     ds = []
-    for idx, (dt, distance) in enumerate(data):
+    hs = []
+    ps = []
+    for idx, (dt, distance, heart, pace) in enumerate(data):
         acc += distance
-        xs.append(dt)
-        ys.append(acc)
+        dts.append(dt)
+        accs.append(acc)
         ds.append(distance)
-    return xs, ys, ds
+        hs.append(heart)
+        ps.append(pace)
+    return dts, accs, ds, hs, ps
 
 
-def sync_data(dt_str: str, distance_str: str) -> bool:
+def sync_data(dt_str: str, distance_str: str, heart_str: str, pace_str: str) -> bool:
     dts = dt_str.split(",")
     distances = distance_str.split(",")
-    if len(dts) != len(distances):
-        print("dt len not equal distance len")
+    hearts = heart_str.split(",")
+    paces = pace_str.split(",")
+    n = len(dts)
+    if len(distances) != n:
+        print("distance length not equal dt length")
         return False
-    xs, _, _ = get_running_data()
-    if xs:
-        latest = xs[-1]
+    elif len(hearts) != n:
+        print("heart rate length not equal dt length")
+        return False
+    elif len(paces) != n:
+        print("pace length not equal dt length")
+        return False
+    dts, _, _, _, _ = get_running_data()
+    if dts:
+        latest = dts[-1]
         new_data = [
-            (dt, distances[i])
+            (dt, distances[i], hearts[i], paces[i])
             for i, dt in enumerate(dts)
             if datetime.strptime(dt, "%Y-%m-%d %H:%M:%S") > latest
         ]
         if new_data:
             with open("running.csv", "a") as f:
-                for dt, distance in sorted(new_data, key=lambda t: t[0]):
-                    f.write(dt + "," + distance + "\n")
+                for dt, distance, heart, pace in sorted(new_data, key=lambda t: t[0]):
+                    f.write(f"{dt},{distance},{heart},{paces}\n")
         else:
             print("no new data")
             return False
     else:
         with open("running.csv", "a") as f:
             for i, dt in enumerate(dts):
-                f.write(dt + "," + distances[i] + "\n")
+                f.write(f"{dt},{distances[i]},{hearts[i]},{paces[i]}\n")
     return True
 
 
 if __name__ == "__main__":
     args = sys.argv
     if len(args) < 2:
-        sys.exit("args is not right, e.g. python main.py http 2022-01-02 12:00:21")
+        sys.exit(
+            "args is not right, e.g. python main.py http 2022-01-02 12:00:21 140 4:56"
+        )
     op = args[1]
     if op != "http" and op != "push":
         sys.exit("op must be http or push")
     if op == "http":
-        if sync_data(args[2], args[3]):
+        if sync_data(args[2], args[3], args[4], args[5]):
             plot_running()
     elif op == "push":
         plot_running()

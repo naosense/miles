@@ -5,10 +5,16 @@ on:
     inputs:
       dt:
         description: 'datetime str with comma separated, format 2021-01-02 12:22:45,2021-01-02 12:32:45'
-        required: false
+        required: true
       distance:
-        description: 'running distance with comma separated, e.g. 5.12,3.23'
-        required: false
+        description: 'distance with comma separated, e.g. 5.12,3.23'
+        required: true
+      heart:
+        description: 'heart rate with comma separated, e.g. 140,150'
+        required: true
+      pace:
+        description: 'pace with comma separated, e.g. 6:20,5:13'
+        required: true
 
 env:
   # change env here
@@ -44,7 +50,7 @@ jobs:
         if: steps.pip-cache.outputs.cache-hit != 'true'
       - name: Update running data and generate new SVG file
         run: |
-          python main.py http $'${{ github.event.inputs.dt }}' $'${{ github.event.inputs.distance }}'
+          python main.py http $'${{ github.event.inputs.dt }}' $'${{ github.event.inputs.distance }}' $'${{ github.event.inputs.heart }}' $'${{ github.event.inputs.pace }}'
       - name: Commit and push updated files
         run: |
           git config --local user.email "${{ env.GITHUB_EMAIL }}"
