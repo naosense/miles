@@ -283,7 +283,7 @@ if __name__ == "__main__":
                 dt,
                 distance,
                 heart,
-                f"{(pace := duration / (distance / 1000)) // 60:.0f}:{pace % 60:.0f}",
+                f"{(pace_in_seconds := duration / distance) // 60:.0f}:{pace_in_seconds % 60:02.0f}",
             )
             for run in runs
             if (
@@ -292,16 +292,16 @@ if __name__ == "__main__":
                 )
             )
             > latest_dt
-            and (distance := run["distance"]) > 0
+            and (distance := run["distance"] / 1000) > 0
             and (heart := run["averageHR"])
             and (duration := run["duration"])
         ]
         new_data.sort(key=lambda t: t[1])
         if new_data:
             dts = [dt_str for dt_str, _, _, _, _ in new_data]
-            distances = [f"{distance / 1000:.2f}" for _, _, distance, _, _ in new_data]
+            distances = [f"{distance:.2f}" for _, _, distance, _, _ in new_data]
             hearts = [f"{heart:.0f}" for _, _, _, heart, _ in new_data]
-            paces = [str(pace) for _, _, _, _, pace in new_data]
+            paces = [pace for _, _, _, _, pace in new_data]
             logger.info(f"got new data {dts} {distances} {hearts} {paces}")
             if notice_github(
                 ",".join(dts), ",".join(distances), ",".join(hearts), ",".join(paces)
