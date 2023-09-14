@@ -32,6 +32,15 @@ As a runner, If you run one kilometer a day, it looks inconspicuous, but if you 
    2. by update running.csv
 4. link your running svg everywhere ^_^.
 
+(Optional) config a syncer
+
+1. edit garmin.py, replace token and workflow id
+2. add crontab job, for example
+
+    ```
+    31 2 * * * /usr/bin/env bash -c 'cd /home/user/bin/syncer && source /home/user/bin/syncer/venv/bin/activate && python garmin.py user password --is-cn --only-run'
+    ```
+
 ## Thanks
 
 This software is inspired by [iBeats](https://github.com/yihong0618/iBeats) and [star-history](https://github.com/star-history/star-history), thank you two for creating such a great software.
