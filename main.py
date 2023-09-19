@@ -19,6 +19,12 @@ def number_label_fmt(val: float, pos) -> str:
         return f"{val:.0f}"
 
 
+def pace_label_fmt(val: float, pos) -> str:
+    min = val // 60
+    sec = val % 60
+    return f"{min:.0f}'{sec:.0f}\""
+
+
 def plot_running() -> None:
     with plt.xkcd():
         fig, ax = plt.subplots(figsize=(8, 5), constrained_layout=True)
@@ -61,6 +67,8 @@ def plot_running() -> None:
         ax3.spines[["top", "right", "left", "bottom"]].set_visible(False)
         ax3.tick_params(axis="x", which="major", labelsize="xx-small", length=2)
         ax3.tick_params(axis="y", which="major", labelsize="xx-small", length=0)
+        ax3.xaxis.set_major_locator(tick.MaxNLocator(6))
+        ax3.xaxis.set_major_formatter(tick.FuncFormatter(pace_label_fmt))
 
         years = xs[-1].year - xs[0].year + 1
         this_year = datetime.now().year
