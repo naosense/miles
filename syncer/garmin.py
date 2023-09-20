@@ -271,7 +271,7 @@ if __name__ == "__main__":
         logger.error("no latest file")
         sys.exit(-1)
     with open("latest", "r") as f:
-        latest_dt = datetime.strptime(f.readline(), "%Y-%m-%d %H:%M:%S")
+        latest_dt = datetime.strptime(f.readline().strip(), "%Y-%m-%d %H:%M:%S")
     start_date = latest_dt.date() + timedelta(days=1)
     runs = loop.run_until_complete(
         client.get_activities(0, 20, start_date=f"{start_date:%Y-%m-%d}")
