@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from datetime import datetime
+from typing import Callable
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -10,13 +11,25 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 RUNNER = "NAOSENSE"
 
 
-def number_label_fmt(val: float, pos) -> str:
-    if val > 1000000:
-        return f"{val / 1000000:.0f}M"
-    elif val > 1000:
-        return f"{val / 1000:.0f}K"
-    else:
-        return f"{val:.0f}"
+def number_label_fmt_closure(interval: list[float]) -> Callable[[float, int], str]:
+    def number_label_fmt(val: float, pos) -> str:
+        if len(interval) < 2:
+            interval.append(val)
+
+        if val >= (threshold := 1000000):
+            if len(interval) != 2 or interval[-1] - interval[0] % threshold == 0:
+                return f"{val / threshold:.0f}M"
+            else:
+                return f"{val / threshold:.1f}M"
+        elif val >= (threshold := 1000):
+            if len(interval) != 2 or interval[-1] - interval[0] % threshold == 0:
+                return f"{val / threshold:.0f}K"
+            else:
+                return f"{val / threshold:.1f}K"
+        else:
+            return f"{val:.0f}"
+
+    return number_label_fmt
 
 
 def pace_label_fmt(val: float, pos) -> str:
@@ -33,7 +46,7 @@ def plot_running() -> None:
         formatter = mdates.ConciseDateFormatter(locator)
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(formatter)
-        ax.yaxis.set_major_formatter(tick.FuncFormatter(number_label_fmt))
+        ax.yaxis.set_major_formatter(tick.FuncFormatter(number_label_fmt_closure([])))
         ax.tick_params(axis="both", which="major", labelsize="small", length=5)
         ax.tick_params(axis="both", which="minor", labelsize="small", length=5)
         ax.set_title("Running is not a sport for health, it is a way of life!")
@@ -159,7 +172,9 @@ def sync_data(dt_str: str, distance_str: str, heart_str: str, pace_str: str) -> 
         ]
         if new_data:
             with open("running.csv", "a") as f:
-                for dt_str, distance, heart, pace in sorted(new_data, key=lambda t: t[0]):
+                for dt_str, distance, heart, pace in sorted(
+                    new_data, key=lambda t: t[0]
+                ):
                     f.write(f"{dt_str},{distance},{heart},{pace}\n")
         else:
             print("no new data")
