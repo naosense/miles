@@ -34,12 +34,22 @@ As a runner, If you run one kilometer a day, it looks inconspicuous, but if you 
 
 (Optional) config a syncer
 
-1. edit garmin.py, replace token and workflow id
-2. add crontab job, for example
+1. garmin
+
+    1.1 edit garmin.py, replace token and workflow id
+
+    1.2 add crontab job, for example
 
     ```
     31 2 * * * /usr/bin/env bash -c 'cd /home/user/bin/syncer && source /home/user/bin/syncer/venv/bin/activate && python garmin.py user password --is-cn --only-run'
     ```
+
+2. running_page
+
+    2.1 add crontab job, for example
+    ```
+    31 2 * * * /usr/bin/env bash -c 'cd /home/user/bin/syncer && source /home/user/bin/syncer/venv/bin/activate && python running_page.py <your github running_page repo, like yihong0618/running_page>
+    ``` 
 
 ## Thanks
 
