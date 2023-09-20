@@ -3,6 +3,7 @@ Fetch running_page activities.json to get your statistics.
 For more running_page information, please visit https://github.com/yihong0618/running_page
 """
 
+from dateutil import parser
 import logging
 import json
 import math
@@ -45,10 +46,10 @@ def refresh_running_csv(activities: list):
   with open("running.csv", "w") as f:
     f.write("DT,distance(Km),heart,pace\n")
     for activity in activities:
-      f.write("{date},{distance:.2f},{heart:.0f},{pace}\n".format(
-        date=activity["start_date"],
+      f.write("{date},{distance:.2f},{heart},{pace}\n".format(
+        date=parser.parse(activity["start_date"]).strftime("%Y-%m-%d %H:%M:%S"),
         distance=activity["distance"]/1000.,
-        heart=activity["average_heartrate"] if activity["average_heartrate"] else 0,
+        heart='{:.0f}'.format(activity["average_heartrate"]) if activity["average_heartrate"] else '',
         pace=get_format_pace(activity["average_speed"]),
       ))
   logger.info("done")
