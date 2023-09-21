@@ -102,7 +102,7 @@ def get_running_data() -> (
                 continue
             dt = datetime.strptime(cols[0], "%Y-%m-%d %H:%M:%S")
             distance = float(cols[1])
-            heart = int(cols[2])
+            heart = int(cols[2]) if cols[2].isdecimal() else None
             pace = datetime.strptime(cols[3], "%M:%S")
             if distance <= 0.0:
                 continue
@@ -119,7 +119,7 @@ def get_running_data() -> (
         dts.append(dt)
         accs.append(acc)
         ds.append(distance)
-        hs.append(heart)
+        if heart: hs.append(heart)
         ps.append(pace)
     return dts, accs, ds, hs, ps
 

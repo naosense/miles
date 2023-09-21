@@ -45,10 +45,10 @@ def refresh_running_csv(activities: list):
   with open("running.csv", "w") as f:
     f.write("DT,distance(Km),heart,pace\n")
     for activity in activities:
-      f.write("{date},{distance:.2f},{heart:.0f},{pace}\n".format(
-        date=activity["start_date"],
+      f.write("{date},{distance:.2f},{heart},{pace}\n".format(
+        date=activity["start_date_local"],
         distance=activity["distance"]/1000.,
-        heart=activity["average_heartrate"] if activity["average_heartrate"] else 0,
+        heart='{:.0f}'.format(activity["average_heartrate"]) if activity["average_heartrate"] else '',
         pace=get_format_pace(activity["average_speed"]),
       ))
   logger.info("done")
