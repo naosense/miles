@@ -8,14 +8,12 @@ import argparse
 import asyncio
 import logging
 import os
-import re
 import sys
 from datetime import datetime, timedelta
 
 import cloudscraper
 import garth
 import httpx
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 GITHUB_WORKFLOW_ID = ""
 
@@ -42,7 +40,6 @@ GARMIN_COM_URL_DICT = {
     "BASE_URL": "https://connectapi.garmin.com",
     "SSO_URL_ORIGIN": "https://sso.garmin.com",
     "SSO_URL": "https://sso.garmin.com/sso",
-    # "MODERN_URL": "https://connect.garmin.com/modern",
     "MODERN_URL": "https://connectapi.garmin.com",
     "SIGNIN_URL": "https://sso.garmin.com/sso/signin",
     "CSS_URL": "https://static.garmincdn.com/com.garmin.connect/ui/css/gauth-custom-v1.2-min.css",
@@ -54,7 +51,6 @@ GARMIN_CN_URL_DICT = {
     "BASE_URL": "https://connectapi.garmin.cn",
     "SSO_URL_ORIGIN": "https://sso.garmin.com",
     "SSO_URL": "https://sso.garmin.cn/sso",
-    # "MODERN_URL": "https://connect.garmin.cn/modern",
     "MODERN_URL": "https://connect.garmin.cn",
     "MODERN_URL": "https://connectapi.garmin.cn",
     "SIGNIN_URL": "https://sso.garmin.cn/sso/signin",
@@ -98,7 +94,7 @@ class Garmin:
             else GARMIN_COM_URL_DICT
         )
         self.modern_url = self.URL_DICT.get("MODERN_URL")
-        garth.resume_from_string(secret_string)
+        garth.client.loads(secret_string)
         if garth.client.oauth2_token.expired:
             garth.client.refresh_oauth2()
 
@@ -196,7 +192,7 @@ if __name__ == "__main__":
     if options.is_cn:
         garth.configure(domain="garmin.cn")
     garth.login(email, password)
-    secret_string = garth.save_to_string()
+    secret_string = garth.client.dumps()
     client = Garmin(secret_string, auth_domain, is_only_running)
     if not os.path.exists("latest"):
         logger.error("no latest file")
