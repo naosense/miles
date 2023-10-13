@@ -63,7 +63,6 @@ def plot_running() -> None:
         ax3.xaxis.set_major_locator(tick.MaxNLocator(6))
         ax3.xaxis.set_major_formatter(tick.FuncFormatter(pace_label_fmt))
 
-        ax4 = plt.axes([0.1, 0.3, 0.25, 0.25], polar=True)
         attendance_all, attendance_this_year = get_attendance(dts)
         feature = [
             "Jan",
@@ -79,17 +78,19 @@ def plot_running() -> None:
             "",
             "",
         ]
-
         angles_deg = [a for a in range(0, 360, 30)]
         angles_rad = [a * math.pi / 180 for a in range(0, 360, 30)]
 
+        ax4 = plt.axes([0.1, 0.3, 0.25, 0.25], polar=True)
         ax4.plot(angles_rad, attendance_all, "-", linewidth=1, color="#ff7f0e")
         ax4.fill(angles_rad, attendance_all, alpha=0.15, zorder=2, color="#ff7f0e")
         ax4.plot(angles_rad, attendance_this_year, "-", linewidth=1, color="#2ca02c")
         ax4.fill(
             angles_rad, attendance_this_year, alpha=0.15, zorder=3, color="#2ca02c"
         )
-        ax4.spines["polar"].set_visible(False)
+        ax4.spines["polar"].set_linestyle('--')
+        ax4.spines["polar"].set_linewidth(0.5)
+        ax4.spines["polar"].set_color("grey")
         ax4.tick_params(axis="x", which="major", labelsize="xx-small", length=0)
         ax4.tick_params(axis="y", which="major", labelsize="xx-small", length=0)
         ax4.set_thetagrids(angles_deg, feature)
