@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+import math
 import sys
 from datetime import datetime
 
+import calendar
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tick
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
+from typing import Callable
 
 RUNNER = "NAOSENSE"
 
@@ -28,11 +31,11 @@ def plot_running() -> None:
         ax.tick_params(axis="both", which="minor", labelsize="small", length=5)
         ax.set_title("Running is not a sport for health, it is a way of life!")
 
-        xs, ys, ds, hs, ps = get_running_data()
-        ax.plot(xs, ys, color="#CC5135")
-        ax2 = plt.axes([0.1, 0.75, 0.3, 0.1])
+        dts, accs, distances, hearts, paces = get_running_data()
+        ax.plot(dts, accs, color="#CC5135")
+        ax2 = plt.axes([0.1, 0.80, 0.3, 0.1])
         ax2.boxplot(
-            hs,
+            hearts,
             labels=["H"],
             vert=False,
             showfliers=False,
@@ -44,9 +47,9 @@ def plot_running() -> None:
         ax2.tick_params(axis="x", which="major", labelsize="xx-small", length=2)
         ax2.tick_params(axis="y", which="major", labelsize="xx-small", length=0)
 
-        ax3 = plt.axes([0.1, 0.6, 0.3, 0.1])
+        ax3 = plt.axes([0.1, 0.65, 0.3, 0.1])
         ax3.boxplot(
-            [p.minute * 60 + p.second for p in ps],
+            [p.minute * 60 + p.second for p in paces],
             labels=["P"],
             vert=False,
             showfliers=False,
@@ -60,20 +63,53 @@ def plot_running() -> None:
         ax3.xaxis.set_major_locator(tick.MaxNLocator(6))
         ax3.xaxis.set_major_formatter(tick.FuncFormatter(pace_label_fmt))
 
-        years = xs[-1].year - xs[0].year + 1
+        ax4 = plt.axes([0.1, 0.3, 0.25, 0.25], polar=True)
+        attendance_all, attendance_this_year = get_attendance(dts)
+        feature = [
+            "Jan",
+            "",
+            "",
+            "Apr",
+            "",
+            "",
+            "Jul",
+            "",
+            "",
+            "Oct",
+            "",
+            "",
+        ]
+
+        angles_deg = [a for a in range(0, 360, 30)]
+        angles_rad = [a * math.pi / 180 for a in range(0, 360, 30)]
+
+        ax4.plot(angles_rad, attendance_all, "-", linewidth=1)
+        ax4.fill(angles_rad, attendance_all, alpha=0.15, zorder=2)
+        ax4.plot(angles_rad, attendance_this_year, "-", linewidth=1)
+        ax4.fill(angles_rad, attendance_this_year, alpha=0.15, zorder=3)
+        ax4.spines["polar"].set_visible(False)
+        ax4.tick_params(axis="x", which="major", labelsize="xx-small", length=0)
+        ax4.tick_params(axis="y", which="major", labelsize="xx-small", length=0)
+        ax4.set_thetagrids(angles_deg, feature)
+        ax4.set_yticks([20, 40, 60, 80, 100])
+        ax4.set_yticklabels(["", "", "", "", "100%"])
+        ax4.set_ylim(0, 100)
+        ax4.grid(visible=True, lw=0.5, ls="--")
+
+        years = dts[-1].year - dts[0].year + 1
         this_year = datetime.now().year
         distance_this_year = sum(
-            [ds[i] for i, dt in enumerate(xs) if dt.year == this_year]
+            [distances[i] for i, dt in enumerate(dts) if dt.year == this_year]
         )
         fig.text(
             0.97,
             0.15,
             f"{RUNNER}\n"
             f"{years} years\n"
-            f"{len(xs)} times\n"
-            f"total {ys[-1]:.2f}Km\n"
+            f"{len(dts)} times\n"
+            f"total {accs[-1]:.2f}Km\n"
             f"this year {distance_this_year:.2f}Km\n"
-            f"latest {xs[-1]: %Y-%m-%d} {ds[-1]:.2f}Km",
+            f"latest {dts[-1]: %Y-%m-%d} {distances[-1]:.2f}Km",
             ha="right",
             va="bottom",
             fontsize="small",
@@ -89,6 +125,54 @@ def plot_running() -> None:
             )
         )
         fig.savefig("miles.svg")
+
+
+def get_attendance(dts: list[datetime]) -> tuple[list[float], list[float]]:
+    ds_all_monthly = groupby(dts, lambda d: d.month)
+    this_year = datetime.now().year
+    ds_this_year = [d for d in dts if d.year == this_year]
+    ds_this_year_monthly = groupby(ds_this_year, lambda d: d.month)
+    days_all_monthly = get_days_monthly(dts[0].year, dts[-1].year)
+    days_this_year_monthly = get_days_monthly(this_year, this_year)
+    attendance_all = []
+    attendance_this_year = []
+    for m in range(1, 13):
+        if m in ds_all_monthly:
+            attendance_all.append(len(ds_all_monthly[m]) / days_all_monthly[m] * 100)
+        else:
+            attendance_all.append(0.0)
+
+        if m in ds_this_year_monthly:
+            attendance_this_year.append(
+                len(ds_this_year_monthly[m]) / days_this_year_monthly[m] * 100
+            )
+        else:
+            attendance_this_year.append(0.0)
+
+    return attendance_all, attendance_this_year
+
+
+def get_days_monthly(year_start: int, year_end: int) -> dict[int, int]:
+    days_monthly = {}
+    for y in range(year_start, year_end + 1):
+        for m in range(1, 13):
+            days = calendar.monthrange(y, m)[1]
+            if m in days_monthly:
+                days_monthly[m] += days
+            else:
+                days_monthly[m] = days
+    return days_monthly
+
+
+def groupby(data: list[any], key_func: Callable[[any], str]) -> dict[any, list[any]]:
+    grouped_data = {}
+    for item in data:
+        key = key_func(item)
+        if key in grouped_data:
+            grouped_data[key].append(item)
+        else:
+            grouped_data[key] = [item]
+    return grouped_data
 
 
 def get_running_data() -> (
@@ -111,17 +195,18 @@ def get_running_data() -> (
     acc = 0.0
     dts = []
     accs = []
-    ds = []
-    hs = []
-    ps = []
+    distances = []
+    hearts = []
+    paces = []
     for idx, (dt, distance, heart, pace) in enumerate(data):
         acc += distance
         dts.append(dt)
         accs.append(acc)
-        ds.append(distance)
-        if heart: hs.append(heart)
-        ps.append(pace)
-    return dts, accs, ds, hs, ps
+        distances.append(distance)
+        if heart:
+            hearts.append(heart)
+        paces.append(pace)
+    return dts, accs, distances, hearts, paces
 
 
 def sync_data(dt_str: str, distance_str: str, heart_str: str, pace_str: str) -> bool:
