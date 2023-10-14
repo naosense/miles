@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+import calendar
 import math
 import sys
 from datetime import datetime
+from typing import Callable, Optional, TypeVar
 
-import calendar
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tick
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
-from typing import Callable
 
 RUNNER = "NAOSENSE"
 
@@ -88,7 +88,7 @@ def plot_running() -> None:
         ax4.fill(
             angles_rad, attendance_this_year, alpha=0.15, zorder=3, color="#2ca02c"
         )
-        ax4.spines["polar"].set_linestyle('--')
+        ax4.spines["polar"].set_linestyle("--")
         ax4.spines["polar"].set_linewidth(0.5)
         ax4.spines["polar"].set_color("grey")
         ax4.tick_params(axis="x", which="major", labelsize="xx-small", length=0)
@@ -135,7 +135,9 @@ def get_attendance(dts: list[datetime]) -> tuple[list[float], list[float]]:
     this_year = datetime.now().year
     ds_this_year = [d for d in dts if d.year == this_year]
     ds_this_year_monthly = groupby(ds_this_year, lambda d: d.month)
-    days_all_monthly = get_days_monthly(dts[0].year, dts[-1].year)
+    days_all_monthly = get_days_monthly(
+        dts[0].year, dts[-1].year, dts[0].month, dts[-1].month
+    )
     days_this_year_monthly = get_days_monthly(this_year, this_year)
     attendance_all = []
     attendance_this_year = []
@@ -155,10 +157,18 @@ def get_attendance(dts: list[datetime]) -> tuple[list[float], list[float]]:
     return attendance_all, attendance_this_year
 
 
-def get_days_monthly(year_start: int, year_end: int) -> dict[int, int]:
+def get_days_monthly(
+    year_start: int,
+    year_end: int,
+    month_start: Optional[int] = None,
+    month_end: Optional[int] = None,
+) -> dict[int, int]:
     days_monthly = {}
     for y in range(year_start, year_end + 1):
-        for m in range(1, 13):
+        for m in range(
+            month_start if month_start and y == year_start else 1,
+            (month_end if month_end and y == year_end else 12) + 1,
+        ):
             days = calendar.monthrange(y, m)[1]
             if m in days_monthly:
                 days_monthly[m] += days
@@ -167,7 +177,11 @@ def get_days_monthly(year_start: int, year_end: int) -> dict[int, int]:
     return days_monthly
 
 
-def groupby(data: list[any], key_func: Callable[[any], str]) -> dict[any, list[any]]:
+T = TypeVar("T")
+K = TypeVar("K")
+
+
+def groupby(data: list[T], key_func: Callable[[T], K]) -> dict[K, list[T]]:
     grouped_data = {}
     for item in data:
         key = key_func(item)
