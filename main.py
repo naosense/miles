@@ -12,11 +12,8 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 RUNNER = "NAOSENSE"
 
-
-def pace_label_fmt(val: float, pos) -> str:
-    min = val // 60
-    sec = val % 60
-    return f"{min:.0f}'{sec:.0f}\""
+T = TypeVar("T")
+K = TypeVar("K")
 
 
 def plot_running() -> None:
@@ -63,23 +60,27 @@ def plot_running() -> None:
         ax3.xaxis.set_major_locator(tick.MaxNLocator(6))
         ax3.xaxis.set_major_formatter(tick.FuncFormatter(pace_label_fmt))
 
-        attendance_all, attendance_this_year = get_attendance(dts)
-        feature = [
-            "Jan",
-            "",
-            "",
-            "Apr",
-            "",
-            "",
-            "Jul",
-            "",
-            "",
-            "Oct",
-            "",
-            "",
-        ]
-        angles_deg = [a for a in range(0, 360, 30)]
-        angles_rad = [a * math.pi / 180 for a in range(0, 360, 30)]
+        attendance_all, attendance_this_year = tuple(
+            map(make_circular, get_attendance(dts))
+        )
+        feature = make_circular(
+            [
+                "Jan",
+                "",
+                "",
+                "Apr",
+                "",
+                "",
+                "Jul",
+                "",
+                "",
+                "Oct",
+                "",
+                "",
+            ]
+        )
+        angles_deg = make_circular([a for a in range(0, 360, 30)])
+        angles_rad = make_circular([a * math.pi / 180 for a in range(0, 360, 30)])
 
         ax4 = plt.axes([0.1, 0.3, 0.25, 0.25], polar=True)
         ax4.plot(angles_rad, attendance_all, "-", linewidth=1, color="#ff7f0e")
@@ -130,11 +131,23 @@ def plot_running() -> None:
         fig.savefig("miles.svg")
 
 
+def pace_label_fmt(val: float, pos) -> str:
+    min = val // 60
+    sec = val % 60
+    return f"{min:.0f}'{sec:.0f}\""
+
+
+def make_circular(lst: list[T]) -> list[T]:
+    if len(lst) > 1:
+        lst.append(lst[0])
+    return lst
+
+
 def get_attendance(dts: list[datetime]) -> tuple[list[float], list[float]]:
-    ds_all_monthly = groupby(dts, lambda d: d.month)
+    dts_all_monthly = groupby(dts, lambda d: d.month)
     this_year = datetime.now().year
-    ds_this_year = [d for d in dts if d.year == this_year]
-    ds_this_year_monthly = groupby(ds_this_year, lambda d: d.month)
+    dts_this_year = [d for d in dts if d.year == this_year]
+    dts_this_year_monthly = groupby(dts_this_year, lambda d: d.month)
     days_all_monthly = get_days_monthly(
         dts[0].year, dts[-1].year, dts[0].month, dts[-1].month
     )
@@ -142,14 +155,14 @@ def get_attendance(dts: list[datetime]) -> tuple[list[float], list[float]]:
     attendance_all = []
     attendance_this_year = []
     for m in range(1, 13):
-        if m in ds_all_monthly:
-            attendance_all.append(len(ds_all_monthly[m]) / days_all_monthly[m] * 100)
+        if m in dts_all_monthly:
+            attendance_all.append(len(dts_all_monthly[m]) / days_all_monthly[m] * 100)
         else:
             attendance_all.append(0.0)
 
-        if m in ds_this_year_monthly:
+        if m in dts_this_year_monthly:
             attendance_this_year.append(
-                len(ds_this_year_monthly[m]) / days_this_year_monthly[m] * 100
+                len(dts_this_year_monthly[m]) / days_this_year_monthly[m] * 100
             )
         else:
             attendance_this_year.append(0.0)
@@ -175,10 +188,6 @@ def get_days_monthly(
             else:
                 days_monthly[m] = days
     return days_monthly
-
-
-T = TypeVar("T")
-K = TypeVar("K")
 
 
 def groupby(data: list[T], key_func: Callable[[T], K]) -> dict[K, list[T]]:
