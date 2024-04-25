@@ -46,7 +46,7 @@ def plot_running() -> None:
 
         ax3 = plt.axes([0.1, 0.65, 0.3, 0.1])
         ax3.boxplot(
-            [p.minute * 60 + p.second for p in paces],
+            [mins * 60 + secs for (mins, secs) in paces],
             labels=["P"],
             vert=False,
             showfliers=False,
@@ -202,7 +202,7 @@ def groupby(data: list[T], key_func: Callable[[T], K]) -> dict[K, list[T]]:
 
 
 def get_running_data() -> (
-    tuple[list[datetime], list[float], list[float], list[int], list[datetime]]
+    tuple[list[datetime], list[float], list[float], list[int], list[tuple[int, int]]]
 ):
     data = []
     with open("running.csv") as file:
@@ -213,10 +213,14 @@ def get_running_data() -> (
             dt = datetime.strptime(cols[0], "%Y-%m-%d %H:%M:%S")
             distance = float(cols[1])
             heart = int(cols[2]) if cols[2].isdecimal() else None
-            pace = datetime.strptime(cols[3], "%M:%S")
+            # garmin数据中配速为整分整秒时，比如6:00，传过来的原始值竟然是5:60
+            mins, secs = [int(i) for i in cols[3].split(":")]
+            if secs == 60:
+                mins = mins + 1
+                secs = 0
             if distance <= 0.0:
                 continue
-            data.append((dt, distance, heart, pace))
+            data.append((dt, distance, heart, (mins, secs)))
     data.sort(key=lambda t: t[0])
     acc = 0.0
     dts = []
