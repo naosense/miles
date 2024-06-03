@@ -8,11 +8,9 @@ on:
       - master
 
 env:
-  # change env here
-  GITHUB_NAME: naosense
-  GITHUB_EMAIL: pingao777@gmail.com
   GARMIN_USERNAME: ${{ secrets.GARMIN_USERNAME }}
   GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   sync:
@@ -33,4 +31,4 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Sync garmin data
         run: |
-          echo ${{ env.GARMIN_USERNAME }} && python garmin.py ${{ env.GARMIN_USERNAME }} ${{ env.GARMIN_PASSWORD }} --is-cn --only-run
+          python garmin.py --is-cn --only-run

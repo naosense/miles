@@ -169,8 +169,6 @@ class GarminConnectTooManyRequestsError(Exception):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("email", nargs="?", help="email of garmin")
-    parser.add_argument("password", nargs="?", help="password of garmin")
     parser.add_argument(
         "--is-cn",
         dest="is_cn",
@@ -184,20 +182,17 @@ if __name__ == "__main__":
         help="if is only for running",
     )
     options = parser.parse_args()
-    email = options.email
-    password = options.password
+    email = GARMIN_USERNAME
+    password = GARMIN_PASSWORD
     auth_domain = "CN" if options.is_cn else None
     is_only_running = options.only_run
-    if not email or not password:
-        logger.error("Missing email or password")
-        sys.exit(1)
     if options.is_cn:
         garth.configure(domain="garmin.cn")
     garth.login(email, password)
     secret_string = garth.client.dumps()
     client = Garmin(secret_string, auth_domain, is_only_running)
     today = date.today()
-    yesterday = today - timedelta(days=1)
+    yesterday = today - timedelta(days=20)
     if sys.version_info < (3, 10):
         loop = asyncio.get_event_loop()
     else:
@@ -224,7 +219,7 @@ if __name__ == "__main__":
                     dt_str := run["startTimeLocal"], "%Y-%m-%d %H:%M:%S"
                 )
             )
-            > yesterday
+            > datetime(year=yesterday.year, month=yesterday.month, day=yesterday.day)
             and (distance := run["distance"] / 1000) > 0
             and (heart := run["averageHR"])
             and (duration := run["duration"])
