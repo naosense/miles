@@ -1,0 +1,46 @@
+name: Sync running data from garmin
+
+on:
+  branches:
+    - master
+  schedule:
+    - cron: "50 10 * * *"
+
+env:
+  # change env here
+  GITHUB_NAME: naosense
+  GITHUB_EMAIL: pingao777@gmail.com
+  GARMIN_USERNAME: ${{ secrets.GARMIN_USERNAME }}
+  GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+
+jobs:
+  sync:
+    name: Build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.4
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          cd syncer
+          echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+      - name: pip cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+      - name: Sync garmin data
+        run: |
+          python garmin.py "${{ env.GARMIN_USERNAME }}" "${{ env.GARMIN_PASSWORD }}" --is-cn --only-run
