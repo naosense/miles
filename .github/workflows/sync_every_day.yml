@@ -2,10 +2,8 @@ name: Sync running data from garmin
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
-  push:
-    branches:
-      - master
+    # utc time
+    - cron: '0 10 * * *'
 
 env:
   GARMIN_USERNAME: ${{ secrets.GARMIN_USERNAME }}

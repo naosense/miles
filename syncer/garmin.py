@@ -192,7 +192,7 @@ if __name__ == "__main__":
     secret_string = garth.client.dumps()
     client = Garmin(secret_string, auth_domain, is_only_running)
     today = date.today()
-    yesterday = today - timedelta(days=20)
+    yesterday = today - timedelta(days=1)
     if sys.version_info < (3, 10):
         loop = asyncio.get_event_loop()
     else:
