@@ -33,4 +33,4 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Sync garmin data
         run: |
-          python garmin.py ${{ env.GARMIN_USERNAME }} ${{ env.GARMIN_PASSWORD }} --is-cn --only-run
+          echo ${{ env.GARMIN_USERNAME }} && python garmin.py ${{ env.GARMIN_USERNAME }} ${{ env.GARMIN_PASSWORD }} --is-cn --only-run
