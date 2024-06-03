@@ -3,7 +3,7 @@ name: Sync running data from garmin
 on:
   schedule:
     # utc time
-    - cron: '0 10 * * *'
+    - cron: '0 18 * * *'
 
 env:
   GARMIN_USERNAME: ${{ secrets.GARMIN_USERNAME }}
@@ -18,7 +18,7 @@ jobs:
         working-directory: ./syncer
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
