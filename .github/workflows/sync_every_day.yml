@@ -2,7 +2,7 @@ name: Sync running data from garmin
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   push:
     branches:
       - master
