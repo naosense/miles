@@ -1,9 +1,11 @@
 name: Sync running data from garmin
 
 on:
+  workflow_dispatch:
   schedule:
     # utc time
     - cron: '0 18 * * *'
+  
 
 env:
   GARMIN_USERNAME: ${{ secrets.GARMIN_USERNAME }}
