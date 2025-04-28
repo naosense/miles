@@ -1,4 +1,4 @@
 cloudscraper~=1.2.71
 httpx~=0.24.1
 tenacity~=8.2.2
-git+https://github.com/naosense/garth.git
+garth
