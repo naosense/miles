@@ -2,3 +2,4 @@ cloudscraper~=1.2.71
 httpx~=0.24.1
 tenacity~=8.2.2
 garth
+certifi==2025.1.31
