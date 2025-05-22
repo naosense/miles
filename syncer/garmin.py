@@ -202,7 +202,7 @@ if __name__ == "__main__":
             loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     runs = loop.run_until_complete(
-        client.get_activities(0, 20, start_date=f"{month_ago:%Y-%m-%d}")
+        client.get_activities(0, 60, start_date=f"{month_ago:%Y-%m-%d}")
     )
     if runs:
         new_data = [
