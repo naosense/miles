@@ -192,7 +192,7 @@ if __name__ == "__main__":
     secret_string = garth.client.dumps()
     client = Garmin(secret_string, auth_domain, is_only_running)
     today = date.today()
-    yesterday = today - timedelta(days=1)
+    month_ago = today - timedelta(days=30)
     if sys.version_info < (3, 10):
         loop = asyncio.get_event_loop()
     else:
@@ -202,7 +202,7 @@ if __name__ == "__main__":
             loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     runs = loop.run_until_complete(
-        client.get_activities(0, 20, start_date=f"{yesterday:%Y-%m-%d}")
+        client.get_activities(0, 60, start_date=f"{month_ago:%Y-%m-%d}")
     )
     if runs:
         new_data = [
@@ -219,7 +219,7 @@ if __name__ == "__main__":
                     dt_str := run["startTimeLocal"], "%Y-%m-%d %H:%M:%S"
                 )
             )
-            > datetime(year=yesterday.year, month=yesterday.month, day=yesterday.day)
+            > datetime(year=month_ago.year, month=month_ago.month, day=month_ago.day)
             and (distance := run["distance"] / 1000) > 0
             and (heart := run["averageHR"])
             and (duration := run["duration"])
