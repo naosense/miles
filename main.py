@@ -4,6 +4,7 @@ import math
 import sys
 from datetime import datetime
 from typing import Callable, Optional, TypeVar
+import numpy as np
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -29,31 +30,74 @@ def plot_running() -> None:
         ax.set_title("Running is not a sport for health, it is a way of life!")
 
         dts, accs, distances, hearts, paces = get_running_data()
+        this_year = datetime.now().year
+
         ax.plot(dts, accs, color="#d62728")
         ax2 = plt.axes([0.1, 0.80, 0.3, 0.1])
-        ax2.boxplot(
+        v11 = ax2.violinplot(
             hearts,
-            labels=["H"],
-            vert=False,
-            showfliers=False,
-            meanline=True,
-            showmeans=True,
-            widths=0.25,
+            orientation="horizontal",
+            showmedians=True,
+            side="low",
         )
+        hearts_this_year = [
+            hearts[i] for i, dt in enumerate(dts) if dt.year == this_year
+        ]
+        v12 = ax2.violinplot(
+            hearts_this_year,
+            orientation="horizontal",
+            showmedians=True,
+            side="high",
+        )
+
+        for body in v11["bodies"]:
+            body.set_facecolor("#ff7f0e")
+            body.set_edgecolor("#ff7f0e")
+        for body in v12["bodies"]:
+            body.set_facecolor("#2ca02c")
+            body.set_edgecolor("#2ca02c")
+        for p in ["cbars", "cmedians", "cmaxes", "cmins"]:
+            v11[p].set_linewidth(1)
+            v12[p].set_linewidth(1)
+            v11[p].set_color("#ff7f0e")
+            v12[p].set_color("#2ca02c")
+
+        hearts_percentile = np.percentile(hearts, [5, 95])
+        ax2.set_xlim(tuple(hearts_percentile))
+        ax2.set_yticklabels([])
         ax2.spines[["top", "right", "left", "bottom"]].set_visible(False)
         ax2.tick_params(axis="x", which="major", labelsize="xx-small", length=2)
         ax2.tick_params(axis="y", which="major", labelsize="xx-small", length=0)
 
         ax3 = plt.axes([0.1, 0.65, 0.3, 0.1])
-        ax3.boxplot(
-            [mins * 60 + secs for (mins, secs) in paces],
-            labels=["P"],
-            vert=False,
-            showfliers=False,
-            meanline=True,
-            showmeans=True,
-            widths=0.25,
+        v21 = ax3.violinplot(
+            paces,
+            orientation="horizontal",
+            showmedians=True,
+            side="low",
         )
+        paces_this_year = [paces[i] for i, dt in enumerate(dts) if dt.year == this_year]
+        v22 = ax3.violinplot(
+            paces_this_year,
+            orientation="horizontal",
+            showmedians=True,
+            side="high",
+        )
+        for body in v21["bodies"]:
+            body.set_facecolor("#ff7f0e")
+            body.set_edgecolor("#ff7f0e")
+        for body in v22["bodies"]:
+            body.set_facecolor("#2ca02c")
+            body.set_edgecolor("#2ca02c")
+        for p in ["cbars", "cmedians", "cmaxes", "cmins"]:
+            v21[p].set_linewidth(1)
+            v21[p].set_color("#ff7f0e")
+            v22[p].set_linewidth(1)
+            v22[p].set_color("#2ca02c")
+
+        paces_percentile = np.percentile(paces, [5, 95])
+        ax3.set_xlim(tuple(paces_percentile))
+        ax3.set_yticklabels([])
         ax3.spines[["top", "right", "left", "bottom"]].set_visible(False)
         ax3.tick_params(axis="x", which="major", labelsize="xx-small", length=2)
         ax3.tick_params(axis="y", which="major", labelsize="xx-small", length=0)
@@ -101,7 +145,6 @@ def plot_running() -> None:
         ax4.grid(visible=True, lw=0.5, ls="--")
 
         years = dts[-1].year - dts[0].year + 1
-        this_year = datetime.now().year
         distance_this_year = sum(
             [distances[i] for i, dt in enumerate(dts) if dt.year == this_year]
         )
@@ -201,9 +244,9 @@ def groupby(data: list[T], key_func: Callable[[T], K]) -> dict[K, list[T]]:
     return grouped_data
 
 
-def get_running_data() -> (
-    tuple[list[datetime], list[float], list[float], list[int], list[tuple[int, int]]]
-):
+def get_running_data() -> tuple[
+    list[datetime], list[float], list[float], list[int], list[int]
+]:
     data = []
     with open("running.csv") as file:
         for line in file:
@@ -220,7 +263,7 @@ def get_running_data() -> (
                 secs = 0
             if distance <= 0.0:
                 continue
-            data.append((dt, distance, heart, (mins, secs)))
+            data.append((dt, distance, heart, mins * 60 + secs))
     data.sort(key=lambda t: t[0])
     acc = 0.0
     dts = []
