@@ -38,6 +38,7 @@ def plot_running() -> None:
             hearts,
             orientation="horizontal",
             showmedians=True,
+            showextrema=False,
             side="low",
         )
         hearts_this_year = [
@@ -47,6 +48,7 @@ def plot_running() -> None:
             hearts_this_year,
             orientation="horizontal",
             showmedians=True,
+            showextrema=False,
             side="high",
         )
 
@@ -56,11 +58,10 @@ def plot_running() -> None:
         for body in v12["bodies"]:
             body.set_facecolor("#2ca02c")
             body.set_edgecolor("#2ca02c")
-        for p in ["cbars", "cmedians", "cmaxes", "cmins"]:
-            v11[p].set_linewidth(1)
-            v12[p].set_linewidth(1)
-            v11[p].set_color("#ff7f0e")
-            v12[p].set_color("#2ca02c")
+        v11["cmedians"].set_linewidth(1)
+        v11["cmedians"].set_color("#ff7f0e")
+        v12["cmedians"].set_linewidth(1)
+        v12["cmedians"].set_color("#2ca02c")
 
         hearts_percentile = np.percentile(hearts, [5, 95])
         ax2.set_xlim(tuple(hearts_percentile))
@@ -74,6 +75,7 @@ def plot_running() -> None:
             paces,
             orientation="horizontal",
             showmedians=True,
+            showextrema=False,
             side="low",
         )
         paces_this_year = [paces[i] for i, dt in enumerate(dts) if dt.year == this_year]
@@ -81,6 +83,7 @@ def plot_running() -> None:
             paces_this_year,
             orientation="horizontal",
             showmedians=True,
+            showextrema=False,
             side="high",
         )
         for body in v21["bodies"]:
@@ -89,11 +92,10 @@ def plot_running() -> None:
         for body in v22["bodies"]:
             body.set_facecolor("#2ca02c")
             body.set_edgecolor("#2ca02c")
-        for p in ["cbars", "cmedians", "cmaxes", "cmins"]:
-            v21[p].set_linewidth(1)
-            v21[p].set_color("#ff7f0e")
-            v22[p].set_linewidth(1)
-            v22[p].set_color("#2ca02c")
+        v21["cmedians"].set_linewidth(1)
+        v21["cmedians"].set_color("#ff7f0e")
+        v22["cmedians"].set_linewidth(1)
+        v22["cmedians"].set_color("#2ca02c")
 
         paces_percentile = np.percentile(paces, [5, 95])
         ax3.set_xlim(tuple(paces_percentile))
