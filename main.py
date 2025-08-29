@@ -38,6 +38,7 @@ def plot_running() -> None:
             hearts,
             orientation="horizontal",
             showmedians=True,
+            showmeans=True,
             showextrema=False,
             side="low",
         )
@@ -48,6 +49,7 @@ def plot_running() -> None:
             hearts_this_year,
             orientation="horizontal",
             showmedians=True,
+            showmeans=True,
             showextrema=False,
             side="high",
         )
@@ -62,6 +64,12 @@ def plot_running() -> None:
         v11["cmedians"].set_color("#ff7f0e")
         v12["cmedians"].set_linewidth(1)
         v12["cmedians"].set_color("#2ca02c")
+        v11["cmeans"].set_linewidth(1)
+        v11["cmeans"].set_color("#ff7f0e")
+        v12["cmeans"].set_linewidth(1)
+        v12["cmeans"].set_color("#2ca02c")
+        v11["cmeans"].set_linestyle("--")
+        v12["cmeans"].set_linestyle("--")
 
         hearts_percentile = np.percentile(hearts, [5, 95])
         ax2.set_xlim(tuple(hearts_percentile))
@@ -75,6 +83,7 @@ def plot_running() -> None:
             paces,
             orientation="horizontal",
             showmedians=True,
+            showmeans=True,
             showextrema=False,
             side="low",
         )
@@ -83,6 +92,7 @@ def plot_running() -> None:
             paces_this_year,
             orientation="horizontal",
             showmedians=True,
+            showmeans=True,
             showextrema=False,
             side="high",
         )
@@ -96,6 +106,12 @@ def plot_running() -> None:
         v21["cmedians"].set_color("#ff7f0e")
         v22["cmedians"].set_linewidth(1)
         v22["cmedians"].set_color("#2ca02c")
+        v21["cmeans"].set_linewidth(1)
+        v21["cmeans"].set_color("#ff7f0e")
+        v22["cmeans"].set_linewidth(1)
+        v22["cmeans"].set_color("#2ca02c")
+        v21["cmeans"].set_linestyle("--")
+        v22["cmeans"].set_linestyle("--")
 
         paces_percentile = np.percentile(paces, [5, 95])
         ax3.set_xlim(tuple(paces_percentile))
