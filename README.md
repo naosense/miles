@@ -15,41 +15,32 @@ As a runner, If you run one kilometer a day, it looks inconspicuous, but if you 
 ## Usage
 
 1. fork the repo
-2. replace personal information with yours
-3. update your running data
-    1. by http
+2. replace personal information `RUNNER` variable in `main.py' with yours
+3. update your running data, copy your data to running.csv
+4. config a syncer to update running data every day
 
-        ```bash
-        curl -H "Content-Type:application/json" -X POST -d '{"inputs": {"dt":"2023-08-06 12:00:01", "distance":"3.02"}, "ref":"master"}' https://api.github.com/repos/{your username}/miles/actions/workflows/{your http workflow id}/dispatches -H "Authorization: token {your token}"
-       ```
+    - garmin
+        
+        1. set up github action secrets
+            - `GARMIN_USERNAME`: your garmin account username
+            - `GARMIN_PASSWORD`: your garmin account password
+            - `GH_TOKEN`: a github token
+       
+            <img width="1179" height="593" alt="image" src="https://github.com/user-attachments/assets/e48e0f94-a715-4244-99ed-bc5c9990a9d1" />
+            
+        2. edit `garmin.py`, replace `GITHUB_WORKFLOW_ID`
+        
+            > how to get your http workflow id?
+            > 
+            > `curl https://api.github.com/repos/{your username}/miles/actions/workflows -H "Authorization: token {your token}"`
 
-       how to get your http workflow id?
+   - or with running_page
 
-       ```bash
-       curl https://api.github.com/repos/{your username}/miles/actions/workflows -H "Authorization: token {your token}"
-       ```
-
-   2. by update running.csv
-4. link your running svg everywhere ^_^.
-
-(Optional) config a syncer
-
-1. garmin
-
-    1.1 edit garmin.py, replace token and workflow id
-
-    1.2 add crontab job, for example
-
-    ```
-    31 2 * * * /usr/bin/env bash -c 'cd /home/user/bin/syncer && source /home/user/bin/syncer/venv/bin/activate && python garmin.py user password --is-cn --only-run'
-    ```
-
-2. running_page
-
-    2.1 add crontab job, for example
-    ```
-    31 2 * * * /usr/bin/env bash -c 'cd /home/user/bin/syncer && source /home/user/bin/syncer/venv/bin/activate && python running_page.py <your github running_page repo, like yihong0618/running_page>
-    ``` 
+       2.1 add crontab job, for example
+        ```
+        31 2 * * * /usr/bin/env bash -c 'cd /home/user/bin/syncer && source /home/user/bin/syncer/venv/bin/activate && python running_page.py <your github running_page repo, like yihong0618/running_page>
+        ```
+5. Hurray! You've done it
 
 ## Thanks
 
