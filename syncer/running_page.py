@@ -29,7 +29,7 @@ def get_activities(running_page_repo: str) -> []:
   logger.info("getting activities from running_repo [{repo}]...".format(repo=running_page_repo))
   path = get_activities_download_path(running_page_repo)
   try:
-    with urllib.request.urlopen(path) as url:
+    with urllib.request.urlopen(path, timeout=30) as url:
       activities = json.loads(url.read().decode())
   except:
     logger.error("[Error] failed to get activities from running_repo [{repo}]({path})".format(repo=running_page_repo, path=path))
